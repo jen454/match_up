@@ -30,8 +30,31 @@ const ParticipantsPage = () => {
     );
   };
 
-  const onClickButton = (): void => {
-    console.log(players);
+  const onClickButton = async (): Promise<void> => {
+    try {
+      const response = await fetch("/api/games", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          players: players.map((player) => ({
+            name: player.name,
+            handicap: player.handicap,
+          })),
+        }),
+      });
+
+      const data = await response.json();
+      console.log("서버 응답 데이터", data);
+
+      if (!response.ok) {
+        console.error("응답이 실패한 이유:", data.error || "게임 생성 실패");
+        throw new Error(data.error || "게임 생성 실패");
+      }
+
+      console.log("게임 생성 성공:", data);
+    } catch (error) {
+      console.error("게임 생성 실패:", error);
+    }
   };
 
   if (!numParticipants) {
