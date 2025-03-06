@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Button, PlayerCard } from "@/components";
 import { createGame } from "@/utils/api";
 
@@ -14,6 +14,7 @@ interface Player {
 const ParticipantsPage = () => {
   const params = useParams();
   const numParticipants = Number(params.id);
+  const router = useRouter();
 
   // 모든 참가자의 정보를 관리하는 상태
   const [players, setPlayers] = useState<Player[]>(
@@ -42,6 +43,10 @@ const ParticipantsPage = () => {
       );
 
       console.log("게임 생성 성공:", data);
+      // ✅ 성공했으면 게임 ID를 이용해 대진표 페이지로 이동
+      if (data.success && data.gameId) {
+        router.push(`/tournament/${data.gameId}`);
+      }
     } catch (error) {
       console.error("게임 생성 실패:", error);
     }
