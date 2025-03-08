@@ -36,17 +36,15 @@ const ParticipantsPage = () => {
   const onClickButton = async (): Promise<void> => {
     try {
       const data = await createGame(
-          players.map((player) => ({
-            name: player.name,
-            handicap: player.handicap,
-          }))
+        players.map((player) => ({
+          name: player.name,
+          handicap: player.handicap,
+        })),
       );
 
       console.log("게임 생성 성공:", data);
       // ✅ 성공했으면 게임 ID를 이용해 대진표 페이지로 이동
-      if (data.success && data.gameId) {
-        router.push(`/tournament/${data.gameId}`);
-      }
+      router.push(`/tournament/${data.gameId}`);
     } catch (error) {
       console.error("게임 생성 실패:", error);
     }
