@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button, PlayerScore } from "@/components";
-import { getGameParticipants } from "@/utils/api";
+import { getGameParticipants, submitGameResults } from "@/utils/api";
 
 interface Player {
   id: number;
@@ -12,7 +12,7 @@ interface Player {
   handicap: number;
   wins: number;
   draws: number;
-  loss: number;
+  losses: number;
   goals_for: number;
   goals_against: number;
   goal_difference: number;
@@ -173,8 +173,24 @@ const TournamentPage = () => {
     });
   };
 
-  const onClickButton = (): void => {
-    console.log(matches);
+  const onClickButton = async (): Promise<void> => {
+    try {
+      const results = matches.flatMap((round) =>
+        round
+          .filter((match) => match.player1 && match.player2) // 휴식 플레이어 제외
+          .map((match) => ({
+            player1_id: match.player1!.id,
+            player2_id: match.player2!.id,
+            score1: match.score1,
+            score2: match.score2,
+          })),
+      );
+
+      await submitGameResults(gameId, results);
+      console.log("게임 결과 저장 완료");
+    } catch (error) {
+      console.error("에러 발생:", error);
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center">로딩 중...</div>;
