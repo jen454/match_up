@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       goals_for: 0,
       goals_against: 0,
       goal_difference: 0,
-      points: 0,
+      points: player.handicap,
     }));
 
     const { error: participantError } = await supabase.from("participants").insert(participants);

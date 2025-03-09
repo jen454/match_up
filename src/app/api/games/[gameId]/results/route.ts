@@ -85,11 +85,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
       }
     });
 
-    // 핸디캡 반영
-    playersMap.forEach((player) => {
-      player.points += player.handicap;
-    });
-
     // 업데이트할 데이터 생성
     const updatedPlayers = Array.from(playersMap.values());
 
