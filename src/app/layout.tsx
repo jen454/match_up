@@ -5,7 +5,7 @@ import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "MatchUp",
-  description: "FC ONLINE 대진 생성 및 경기 결과 확인 서비스",
+  description: "FC ONLINE 토너먼트 매칭 서비스",
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
