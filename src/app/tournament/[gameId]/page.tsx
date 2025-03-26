@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button, PlayerScore, TournamentTable } from "@/components";
 import { getGameParticipants, submitGameResults } from "@/utils/api";
+import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 
 interface Player {
   id: number;
@@ -59,105 +60,6 @@ const TournamentPage = () => {
       getParticipants();
     }
   }, [gameId]);
-
-  // 라운드 로빈 방식으로 매칭 생성
-  const generateRoundRobinMatches = (players: Player[]): Match[][] => {
-    const totalPlayers = players.length;
-    const isOdd = totalPlayers % 2 !== 0;
-    const totalRounds = isOdd ? totalPlayers : totalPlayers - 1; // 짝수일 때는 -1 라운드
-
-    const schedule: Match[][] = [];
-    const usedMatches = new Set<string>(); // 중복 매칭 방지용 Set
-
-    if (isOdd) {
-      // 홀수일 경우: 기존 로직 (휴식자 포함)
-      for (let round = 0; round < totalRounds; round++) {
-        const roundMatches: Match[] = [];
-        const restPlayer = players[round]; // 각 라운드별 휴식자 지정
-        const availablePlayers = players.filter((p) => p !== restPlayer); // 휴식자를 제외한 리스트
-
-        const paired = new Set<number>(); // 이번 라운드에서 매칭된 선수 ID들
-
-        for (let i = 0; i < availablePlayers.length; i++) {
-          const player1 = availablePlayers[i];
-
-          if (paired.has(player1.id)) continue; // 이미 매칭된 선수라면 스킵
-
-          for (let j = i + 1; j < availablePlayers.length; j++) {
-            const player2 = availablePlayers[j];
-
-            if (paired.has(player2.id)) continue; // 이미 매칭된 선수라면 스킵
-
-            const matchKey1 = `${player1.id}-${player2.id}`;
-            const matchKey2 = `${player2.id}-${player1.id}`;
-
-            if (!usedMatches.has(matchKey1) && !usedMatches.has(matchKey2)) {
-              // 새로운 매치 추가
-              roundMatches.push({
-                player1: { id: player1.id, name: player1.name },
-                player2: { id: player2.id, name: player2.name },
-                restPlayer: null,
-                score1: 0,
-                score2: 0,
-              });
-
-              // 사용한 매치 기록
-              usedMatches.add(matchKey1);
-              usedMatches.add(matchKey2);
-
-              // 이번 라운드에서 매칭된 선수들 등록
-              paired.add(player1.id);
-              paired.add(player2.id);
-
-              break; // player1은 한 명과만 매칭해야 하므로 break
-            }
-          }
-        }
-
-        // 휴식 선수 추가
-        roundMatches.push({
-          player1: null,
-          player2: null,
-          restPlayer: { id: restPlayer.id, name: restPlayer.name },
-          score1: 0,
-          score2: 0,
-        });
-
-        schedule.push(roundMatches);
-      }
-    } else {
-      // 짝수일 경우: 원형 방식으로 매칭
-      let arrangedPlayers = [...players];
-
-      for (let round = 0; round < totalRounds; round++) {
-        const roundMatches: Match[] = [];
-
-        for (let i = 0; i < totalPlayers / 2; i++) {
-          const player1 = arrangedPlayers[i];
-          const player2 = arrangedPlayers[totalPlayers - 1 - i];
-
-          roundMatches.push({
-            player1: { id: player1.id, name: player1.name },
-            player2: { id: player2.id, name: player2.name },
-            restPlayer: null, // 짝수일 때는 휴식 없음
-            score1: 0,
-            score2: 0,
-          });
-        }
-
-        schedule.push(roundMatches);
-
-        // 참가자 순환 (맨 마지막 선수를 제외하고 로테이션)
-        arrangedPlayers = [
-          arrangedPlayers[0], // 첫 번째 선수는 고정
-          ...arrangedPlayers.slice(2), // 두 번째부터 마지막 전까지 이동
-          arrangedPlayers[1], // 원래 두 번째 선수를 마지막으로 이동
-        ];
-      }
-    }
-
-    return schedule;
-  };
 
   // 점수 업데이트 핸들러
   const onChangeScore = (
