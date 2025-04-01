@@ -36,6 +36,18 @@ const TournamentPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submittedRounds, setSubmittedRounds] = useState<boolean[]>([]); // 라운드 제출 여부 저장
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // 768px 이하일 때 모바일로 간주
+    };
+
+    handleResize(); // 초기 렌더링 시 체크
+    window.addEventListener("resize", handleResize); // 윈도우 크기 변경 시 확인
+
+    return () => window.removeEventListener("resize", handleResize); // 클린업
+  }, []);
 
   useEffect(() => {
     const getParticipants = async () => {
@@ -73,6 +85,10 @@ const TournamentPage = () => {
       updatedMatches[roundIndex][matchIndex][player] = value;
       return updatedMatches;
     });
+  };
+
+  const onClickRestartTournament = () => {
+    window.location.reload(); // 페이지 새로고침
   };
 
   const onClickButton = async (roundIndex: number): Promise<void> => {
@@ -144,7 +160,7 @@ const TournamentPage = () => {
                             onChange={(value) =>
                               onChangeScore(roundIndex, matchIndex, "score1", value)
                             }
-                            reverse={false} // 이름 먼저
+                            reverse={false}
                           />
                           {/* VS */}
                           <span className="font-bold mx-2">VS</span>
@@ -155,7 +171,7 @@ const TournamentPage = () => {
                             onChange={(value) =>
                               onChangeScore(roundIndex, matchIndex, "score2", value)
                             }
-                            reverse={true} // 입력칸 먼저
+                            reverse={!isMobile}
                           />
                         </div>
                       ))}
@@ -188,6 +204,10 @@ const TournamentPage = () => {
                 </div>
               </div>
             ))}
+            {/* 게임 재시작 버튼 */}
+            <div className="flex justify-center max-w-sm mx-auto">
+              <Button text="토너먼트 재진행" onClick={onClickRestartTournament} />
+            </div>
           </div>
 
           {/* 오른쪽: 토너먼트 테이블 */}

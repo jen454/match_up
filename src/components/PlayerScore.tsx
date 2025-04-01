@@ -21,25 +21,25 @@ export const PlayerScore: React.FC<PlayerScoreProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-2">
       {reverse ? ( // reverse가 true면 input 먼저
         <>
           <input
             type="number"
             value={score}
             onChange={onChangeInput}
-            className="w-12 p-1 text-center border rounded"
+            className="w-14 text-center border rounded text-sm sm:text-base"
           />
-          <span className="font-semibold">{player.name}</span>
+          <span className="font-semibold text-sm sm:text-base">{player.name}</span>
         </>
       ) : (
         <>
-          <span className="font-semibold">{player.name}</span>
+          <span className="font-semibold text-sm sm:text-base">{player.name}</span>
           <input
             type="number"
             value={score}
             onChange={onChangeInput}
-            className="w-12 p-1 text-center border rounded"
+            className="w-14 text-center border rounded text-sm sm:text-base"
           />
         </>
       )}
