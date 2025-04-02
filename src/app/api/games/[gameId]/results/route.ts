@@ -101,3 +101,79 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
     return NextResponse.json({ error: "서버 오류" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ gameId: string }> },
+) {
+  try {
+    const { gameId } = await params;
+    const { results }: { results: MatchResult[] } = await req.json();
+    const supabase = await createClient();
+    const parsedGameId = Number(gameId);
+
+    if (!parsedGameId || !results || results.length === 0) {
+      return NextResponse.json({ error: "잘못된 요청" }, { status: 400 });
+    }
+
+    // 참가자 데이터 가져오기
+    const { data: playersData, error: fetchError } = await supabase
+      .from("participants")
+      .select("*")
+      .eq("game_id", parsedGameId);
+
+    if (fetchError) throw fetchError;
+
+    // 참가자 데이터를 Map으로 저장
+    const playersMap = new Map<number, PlayerStats>();
+    playersData.forEach((player: PlayerStats) => {
+      playersMap.set(player.id, { ...player });
+    });
+
+    // 결과 취소 (점수 차감)
+    results.forEach(({ player1_id, player2_id, score1, score2 }) => {
+      const player1 = playersMap.get(player1_id);
+      const player2 = playersMap.get(player2_id);
+
+      if (!player1 || !player2) return;
+
+      // 점수 차감
+      player1.goals_for -= score1;
+      player1.goals_against -= score2;
+      player2.goals_for -= score2;
+      player2.goals_against -= score1;
+
+      // 골득실 재계산
+      player1.goal_difference = player1.goals_for - player1.goals_against;
+      player2.goal_difference = player2.goals_for - player2.goals_against;
+
+      if (score1 > score2) {
+        player1.wins -= 1;
+        player1.points -= 3;
+        player2.losses -= 1;
+      } else if (score1 < score2) {
+        player2.wins -= 1;
+        player2.points -= 3;
+        player1.losses -= 1;
+      } else {
+        player1.draws -= 1;
+        player2.draws -= 1;
+        player1.points -= 1;
+        player2.points -= 1;
+      }
+    });
+
+    const updatedPlayers = Array.from(playersMap.values());
+
+    const { error: updateError } = await supabase
+      .from("participants")
+      .upsert(updatedPlayers, { onConflict: "id" });
+
+    if (updateError) throw updateError;
+
+    return NextResponse.json({ message: "게임 결과 취소 완료", updatedPlayers }, { status: 200 });
+  } catch (error) {
+    console.error("게임 결과 취소 에러:", error);
+    return NextResponse.json({ error: "서버 오류" }, { status: 500 });
+  }
+}
