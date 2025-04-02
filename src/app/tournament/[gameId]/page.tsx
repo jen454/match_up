@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Button, PlayerScore, TournamentTable } from "@/components";
-import { getGameParticipants, submitGameResults } from "@/utils/api";
+import { getGameParticipants, submitGameResults, cancelGameResults } from "@/utils/api";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 
 interface Player {
@@ -91,7 +91,7 @@ const TournamentPage = () => {
     window.location.reload(); // 페이지 새로고침
   };
 
-  const onClickButton = async (roundIndex: number): Promise<void> => {
+  const onClickSubmitButton = async (roundIndex: number): Promise<void> => {
     try {
       // 해당 라운드의 결과만 제출
       const results = matches[roundIndex]
@@ -105,7 +105,7 @@ const TournamentPage = () => {
 
       // 게임 결과를 서버에 제출
       await submitGameResults(gameId, results);
-      console.log(`Round ${roundIndex + 1} 게임 결과 저장 완료`);
+      console.log(`Round ${roundIndex + 1} 게임 결과 저장 완료`, matches);
 
       // 라운드가 제출되었음을 상태로 관리
       setSubmittedRounds((prev) => {
@@ -119,6 +119,33 @@ const TournamentPage = () => {
       setPlayers(data.players); // 플레이어 업데이트
     } catch (error) {
       console.error("에러 발생:", error);
+    }
+  };
+
+  const onClickCancelButton = async (roundIndex: number): Promise<void> => {
+    try {
+      const results = matches[roundIndex]
+        .filter((match) => match.player1 && match.player2)
+        .map((match) => ({
+          player1_id: match.player1!.id,
+          player2_id: match.player2!.id,
+          score1: match.score1,
+          score2: match.score2,
+        }));
+
+      await cancelGameResults(gameId, results);
+      console.log(`Round ${roundIndex + 1} 게임 결과 취소 완료`, matches);
+
+      setSubmittedRounds((prev) => {
+        const updated = [...prev];
+        updated[roundIndex] = false;
+        return updated;
+      });
+
+      const data = await getGameParticipants(gameId);
+      setPlayers(data.players);
+    } catch (error) {
+      console.error("취소 에러:", error);
     }
   };
 
@@ -195,12 +222,15 @@ const TournamentPage = () => {
                 </div>
 
                 {/* 라운드 결과 저장 버튼 */}
-                <div className="flex justify-center mt-4">
+                <div className="flex justify-center mt-4 gap-4">
                   <Button
                     text={`Round ${roundIndex + 1} 종료`}
-                    onClick={() => onClickButton(roundIndex)}
-                    disabled={submittedRounds[roundIndex]} // 이미 제출한 경우 비활성화
+                    onClick={() => onClickSubmitButton(roundIndex)}
+                    disabled={submittedRounds[roundIndex]}
                   />
+                  {submittedRounds[roundIndex] && (
+                    <Button text="취소" onClick={() => onClickCancelButton(roundIndex)} />
+                  )}
                 </div>
               </div>
             ))}

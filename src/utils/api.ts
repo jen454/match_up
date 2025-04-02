@@ -32,7 +32,7 @@ export const getGameParticipants = async (gameId: number) => {
   return response.json();
 };
 
-// 게임 결과 계산 함수
+// 게임 결과 인터페이스
 interface MatchResult {
   player1_id: number;
   player2_id: number;
@@ -40,6 +40,7 @@ interface MatchResult {
   score2: number;
 }
 
+// 게임 결과 반영 함수 (라운드 종료)
 export const submitGameResults = async (gameId: number, results: MatchResult[]) => {
   if (!gameId || results.length === 0) return;
 
@@ -54,6 +55,26 @@ export const submitGameResults = async (gameId: number, results: MatchResult[]) 
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.error || "게임 결과 저장 실패");
+  }
+
+  return response.json();
+};
+
+// 게임 결과 취소 함수 (라운드 취소)
+export const cancelGameResults = async (gameId: number, results: MatchResult[]) => {
+  if (!gameId || results.length === 0) return;
+
+  const response = await fetch(`/api/games/${gameId}/results`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ results }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "게임 결과 취소 실패");
   }
 
   return response.json();
