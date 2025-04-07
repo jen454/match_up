@@ -1,24 +1,4 @@
-export interface Player {
-  id: number;
-  game_id: number;
-  name: string;
-  handicap: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  goals_for: number;
-  goals_against: number;
-  goal_difference: number;
-  points: number;
-}
-
-export interface Match {
-  player1: { id: number; name: string } | null;
-  player2: { id: number; name: string } | null;
-  restPlayer: { id: number; name: string } | null; // 휴식 선수
-  score1: number;
-  score2: number;
-}
+import { Player, Match } from "@/types/type";
 
 export const generateRoundRobinMatches = (players: Player[]): Match[][] => {
   const totalPlayers = players.length;

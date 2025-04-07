@@ -1,17 +1,5 @@
 import React from "react";
-
-interface Player {
-  id: number;
-  game_id: number;
-  name: string;
-  wins: number;
-  draws: number;
-  losses: number;
-  goals_for: number;
-  goals_against: number;
-  goal_difference: number;
-  points: number;
-}
+import { Player } from "@/types/type";
 
 export const TournamentTable = ({ players }: { players: Player[] }) => {
   // 승점 -> 득점 순으로 정렬

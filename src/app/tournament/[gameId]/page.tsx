@@ -5,28 +5,7 @@ import { useParams } from "next/navigation";
 import { Button, PlayerScore, TournamentTable } from "@/components";
 import { getGameParticipants, submitGameResults, cancelGameResults } from "@/utils/api";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
-
-interface Player {
-  id: number;
-  game_id: number;
-  name: string;
-  handicap: number;
-  wins: number;
-  draws: number;
-  losses: number;
-  goals_for: number;
-  goals_against: number;
-  goal_difference: number;
-  points: number;
-}
-
-interface Match {
-  player1: { id: number; name: string } | null;
-  player2: { id: number; name: string } | null;
-  restPlayer: { id: number; name: string } | null; // 휴식 선수
-  score1: number;
-  score2: number;
-}
+import { Player, Match } from "@/types/type";
 
 const TournamentPage = () => {
   const params = useParams();

@@ -4,12 +4,7 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, PlayerCard } from "@/components";
 import { createGame } from "@/utils/api";
-
-interface Player {
-  id: number;
-  name: string;
-  handicap: number;
-}
+import { Participant } from "@/types/type";
 
 const ParticipantsPage = () => {
   const params = useParams();
@@ -17,7 +12,7 @@ const ParticipantsPage = () => {
   const router = useRouter();
 
   // 모든 참가자의 정보를 관리하는 상태
-  const [players, setPlayers] = useState<Player[]>(
+  const [players, setPlayers] = useState<Participant[]>(
     Array.from({ length: numParticipants }, (_, index) => ({
       id: index + 1,
       name: "",
@@ -26,7 +21,7 @@ const ParticipantsPage = () => {
   );
 
   // 개별 참가자 정보 업데이트 함수
-  const updatePlayer = (id: number, updatedData: Partial<Player>) => {
+  const updatePlayer = (id: number, updatedData: Partial<Participant>) => {
     setPlayers((prev) =>
       prev.map((player) => (player.id === id ? { ...player, ...updatedData } : player)),
     );
