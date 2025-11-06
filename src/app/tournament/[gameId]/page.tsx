@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Button, PlayerScore, TournamentTable } from "@/components";
+import { Button, PlayerScore, TournamentTable, BackHeader } from "@/components";
 import { getGameParticipants, submitGameResults, cancelGameResults } from "@/utils/api";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 import { Player, Match } from "@/types/type";
@@ -128,17 +128,33 @@ const TournamentPage = () => {
     }
   };
 
+  // 완료된 라운드 수 계산
+  const getCompletedMatchesCount = () => {
+    return submittedRounds.filter((submitted) => submitted).length;
+  };
+
+  // 전체 라운드 수 계산
+  const getTotalRounds = () => {
+    return matches.length;
+  };
+
   if (loading) return <div className="flex items-center justify-center">로딩 중...</div>;
   if (error) return <div className="text-red-500">오류 발생: {error}</div>;
 
   return (
-    <div className="h-screen flex flex-col items-center">
-      <div className="flex flex-col items-center gap-12 mt-32 w-full max-w-7xl">
-        <div className="text-3xl font-bold text-center">토너먼트 매치</div>
+    <div className="h-screen flex flex-col">
+      <BackHeader
+        title="토너먼트 매치"
+        rightContent={
+          <span>
+            {getCompletedMatchesCount()} / {getTotalRounds()} 라운드 완료
+          </span>
+        }
+      />
 
+      <div className="flex flex-col items-center gap-12 mt-12 w-full max-w-7xl mx-auto">
         {/* 전체 레이아웃 조정 */}
         <div className="flex flex-col lg:flex-row w-full gap-8">
-          {/* 왼쪽: 매치 리스트 */}
           <div className="flex-1 flex flex-col gap-8">
             {matches.map((round, roundIndex) => (
               <div key={roundIndex} className="w-full">
