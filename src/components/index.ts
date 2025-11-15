@@ -12,7 +12,8 @@ export * from "./headers";
 
 // Standalone Components
 export { default as FeatureListItem } from "./FeatureListItem";
+export { default as LabelWithIcon } from "./LabelWithIcon";
 export { default as LoadingSpinner } from "./LoadingSpinner";
-export { PlayerCard } from "./PlayerCard";
+export { default as NumberStepper } from "./NumberStepper";
 export { PlayerScore } from "./PlayerScore";
 export { TournamentTable } from "./TournamentTable";
