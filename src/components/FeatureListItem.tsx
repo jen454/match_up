@@ -7,7 +7,7 @@ interface FeatureListItemProps {
   text: string;
 }
 
-const FeatureListItem: React.FC<FeatureListItemProps> = ({ icon: Icon, iconColor, text }) => {
+const FeatureListItem = ({ icon: Icon, iconColor, text }: FeatureListItemProps) => {
   return (
     <div className="flex items-center gap-2">
       <Icon className={iconColor} size={18} />
