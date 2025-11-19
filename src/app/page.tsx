@@ -38,20 +38,21 @@ export default function HomePage() {
             backgroundImage: `url('/HomeBackGround.jpg')`,
           }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 to-emerald-900/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 to-emerald-900/70"></div>
         </div>
-
         <div className="relative max-w-7xl mx-auto">
-          <div className="w-full">
-            <div className="max-w-4xl">
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-                번거로운 점수 계산은 끝. <br /> FC 온라인 리그전을 프로처럼 관리하세요.
-              </h2>
-              <p className="text-xl text-green-100 mb-8 leading-relaxed">
-                자동 대진 생성부터 실시간 순위표까지. 이제 경기에만 몰입하세요.
-              </p>
-              <HeroButton />
-            </div>
+          <div className="max-w-4xl">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+              FC 온라인 토너먼트를
+              <br />
+              더욱 쉽고 빠르게
+            </h1>
+            <p className="text-xl sm:text-2xl text-gray-100 mb-8 leading-relaxed">
+              대진표 생성부터 순위 집계까지,
+              <br />
+              모든 과정이 자동으로 처리됩니다.
+            </p>
+            <HeroButton />
           </div>
         </div>
       </section>
