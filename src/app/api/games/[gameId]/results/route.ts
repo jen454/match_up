@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { Player } from "@/types/type";
 
 // 경기 결과 타입 정의
 interface MatchResult {
@@ -7,21 +8,6 @@ interface MatchResult {
   player2_id: number;
   score1: number;
   score2: number;
-}
-
-// 참가자 데이터 타입 정의
-interface PlayerStats {
-  id: number;
-  game_id: number; // 반드시 포함
-  name: string; // 추가
-  wins: number;
-  draws: number;
-  losses: number;
-  goals_for: number;
-  goals_against: number;
-  goal_difference: number;
-  points: number;
-  handicap: number;
 }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
@@ -44,8 +30,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
     if (fetchError) throw fetchError;
 
     // 참가자 데이터를 Map으로 저장
-    const playersMap = new Map<number, PlayerStats>();
-    playersData.forEach((player: PlayerStats) => {
+    const playersMap = new Map<number, Player>();
+    playersData.forEach((player: Player) => {
       playersMap.set(player.id, { ...player });
     });
 
@@ -125,8 +111,8 @@ export async function DELETE(
     if (fetchError) throw fetchError;
 
     // 참가자 데이터를 Map으로 저장
-    const playersMap = new Map<number, PlayerStats>();
-    playersData.forEach((player: PlayerStats) => {
+    const playersMap = new Map<number, Player>();
+    playersData.forEach((player: Player) => {
       playersMap.set(player.id, { ...player });
     });
 
