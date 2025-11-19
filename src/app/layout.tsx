@@ -22,6 +22,7 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
           align-items: center;
           justify-content: center;
           z-index: 9999;
+          pointer-events: none;
         }
         #initial-loader-spinner {
           width: 60px;
@@ -41,33 +42,35 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
           font-size: 1.125rem;
           font-weight: 600;
         }
+        .page-loaded #initial-loader {
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s ease-out, visibility 0s 0.3s;
+        }
+      `,
+        }}
+      />
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+        (function() {
+          window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+              document.documentElement.classList.add('page-loaded');
+            }, 100);
+          });
+        })();
       `,
         }}
       />
     </head>
     <SpeedInsights />
     <body>
+      {children}
       <div id="initial-loader">
         <div id="initial-loader-spinner"></div>
         <div id="initial-loader-text">MatchUp 로딩중...</div>
       </div>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-        window.addEventListener('load', function() {
-          const loader = document.getElementById('initial-loader');
-          if (loader) {
-            loader.style.opacity = '0';
-            loader.style.transition = 'opacity 0.3s ease-out';
-            setTimeout(function() {
-              loader.remove();
-            }, 300);
-          }
-        });
-      `,
-        }}
-      />
-      {children}
     </body>
   </html>
 );
