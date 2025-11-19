@@ -19,9 +19,9 @@ export interface Player {
 }
 
 export interface Match {
-  player1: { id: number; name: string } | null;
-  player2: { id: number; name: string } | null;
-  restPlayer: { id: number; name: string } | null; // 휴식 선수
+  player1: { id: number; name: string; handicap: number } | null;
+  player2: { id: number; name: string; handicap: number } | null;
+  restPlayer: { id: number; name: string; handicap: number } | null; // 휴식 선수
   score1: number;
   score2: number;
 }

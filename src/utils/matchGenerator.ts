@@ -20,8 +20,8 @@ export const generateRoundRobinMatches = (players: Player[]): Match[][] => {
         const player2 = playingPlayers[playingPlayers.length - 1 - i];
 
         roundMatches.push({
-          player1: { id: player1.id, name: player1.name },
-          player2: { id: player2.id, name: player2.name },
+          player1: { id: player1.id, name: player1.name, handicap: player1.handicap },
+          player2: { id: player2.id, name: player2.name, handicap: player2.handicap },
           restPlayer: null,
           score1: 0,
           score2: 0,
@@ -32,7 +32,7 @@ export const generateRoundRobinMatches = (players: Player[]): Match[][] => {
       roundMatches.push({
         player1: null,
         player2: null,
-        restPlayer: { id: restPlayer.id, name: restPlayer.name },
+        restPlayer: { id: restPlayer.id, name: restPlayer.name, handicap: restPlayer.handicap },
         score1: 0,
         score2: 0,
       });
@@ -51,8 +51,12 @@ export const generateRoundRobinMatches = (players: Player[]): Match[][] => {
       const roundMatches: Match[] = [];
 
       roundMatches.push({
-        player1: { id: fixedPlayer.id, name: fixedPlayer.name },
-        player2: { id: rotatingPlayers[0].id, name: rotatingPlayers[0].name },
+        player1: { id: fixedPlayer.id, name: fixedPlayer.name, handicap: fixedPlayer.handicap },
+        player2: {
+          id: rotatingPlayers[0].id,
+          name: rotatingPlayers[0].name,
+          handicap: rotatingPlayers[0].handicap,
+        },
         restPlayer: null,
         score1: 0,
         score2: 0,
@@ -63,8 +67,8 @@ export const generateRoundRobinMatches = (players: Player[]): Match[][] => {
         const player2 = rotatingPlayers[rotatingPlayers.length - i];
 
         roundMatches.push({
-          player1: { id: player1.id, name: player1.name },
-          player2: { id: player2.id, name: player2.name },
+          player1: { id: player1.id, name: player1.name, handicap: player1.handicap },
+          player2: { id: player2.id, name: player2.name, handicap: player2.handicap },
           restPlayer: null,
           score1: 0,
           score2: 0,

@@ -1,42 +1,52 @@
 import React from "react";
 import { Player } from "@/types/type";
 
-export const TournamentTable = ({ players }: { players: Player[] }) => {
+const TournamentTable = ({ players }: { players: Player[] }) => {
   // 승점 -> 득점 순으로 정렬
   const sortedPlayers = [...players].sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points;
     return b.goals_for - a.goals_for;
   });
 
+  const tableHeaders = [
+    { key: "rank", label: "순위" },
+    { key: "name", label: "이름" },
+    { key: "wins", label: "승" },
+    { key: "draws", label: "무" },
+    { key: "losses", label: "패" },
+    { key: "goals_for", label: "득점" },
+    { key: "goals_against", label: "실점" },
+    { key: "goal_difference", label: "득실차" },
+    { key: "points", label: "승점" },
+  ];
+
+  const getCellValue = (player: Player, index: number, key: string) => {
+    if (key === "rank") return index + 1;
+    if (key === "name") return player.name;
+    return player[key as keyof Player];
+  };
+
   return (
-    <div className="bg-white border rounded-lg shadow p-4">
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
       <h2 className="text-xl font-bold text-center mb-4">순위표</h2>
       <table className="w-full border-collapse border">
         <thead>
           <tr className="bg-gray-100">
-            <th className="border p-2">순위</th>
-            <th className="border p-2">이름</th>
-            <th className="border p-2">승</th>
-            <th className="border p-2">무</th>
-            <th className="border p-2">패</th>
-            <th className="border p-2">득점</th>
-            <th className="border p-2">실점</th>
-            <th className="border p-2">득실차</th>
-            <th className="border p-2">승점</th>
+            {tableHeaders.map((header) => (
+              <th key={header.key} className="border p-2">
+                {header.label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {sortedPlayers.map((player, index) => (
             <tr key={player.id} className="text-center">
-              <td className="border p-2">{index + 1}</td>
-              <td className="border p-2">{player.name}</td>
-              <td className="border p-2">{player.wins}</td>
-              <td className="border p-2">{player.draws}</td>
-              <td className="border p-2">{player.losses}</td>
-              <td className="border p-2">{player.goals_for}</td>
-              <td className="border p-2">{player.goals_against}</td>
-              <td className="border p-2">{player.goal_difference}</td>
-              <td className="border p-2">{player.points}</td>
+              {tableHeaders.map((header) => (
+                <td key={header.key} className="border p-2">
+                  {getCellValue(player, index, header.key)}
+                </td>
+              ))}
             </tr>
           ))}
         </tbody>
@@ -44,3 +54,5 @@ export const TournamentTable = ({ players }: { players: Player[] }) => {
     </div>
   );
 };
+
+export default TournamentTable;
