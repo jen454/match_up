@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Match } from "@/types/type";
+import { ActiveMatch } from "@/types/type";
 
 export const useScoreModal = (
   onScoreUpdate: (
@@ -12,15 +12,15 @@ export const useScoreModal = (
   const [selectedMatch, setSelectedMatch] = useState<{
     roundIndex: number;
     matchIndex: number;
-    match: Match;
+    match: ActiveMatch;
   } | null>(null);
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
 
-  const openModal = (roundIndex: number, matchIndex: number, match: Match) => {
+  const openModal = (roundIndex: number, matchIndex: number, match: ActiveMatch) => {
     setSelectedMatch({ roundIndex, matchIndex, match });
-    setHomeScore(match.score1?.toString() || "");
-    setAwayScore(match.score2?.toString() || "");
+    setHomeScore(match.score1.toString());
+    setAwayScore(match.score2.toString());
   };
 
   const closeModal = () => {

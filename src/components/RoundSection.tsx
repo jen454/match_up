@@ -1,15 +1,15 @@
 import React from "react";
-import { Match } from "@/types/type";
+import { MatchEntry, ActiveMatch, isActiveMatch, isByeEntry } from "@/types/type";
 import { RoundButton } from "@/components/buttons";
 import { MatchCard } from "@components";
 
 interface RoundSectionProps {
-  round: Match[];
+  round: MatchEntry[];
   actualRoundIndex: number;
   showRoundTitle: boolean;
   isSubmitted: boolean;
   showButtons: boolean;
-  onScoreClick: (roundIndex: number, matchIndex: number, match: Match) => void;
+  onScoreClick: (roundIndex: number, matchIndex: number, match: ActiveMatch) => void;
   onSubmit: (roundIndex: number) => void;
   onCancel: (roundIndex: number) => void;
 }
@@ -24,7 +24,7 @@ const RoundSection = ({
   onSubmit,
   onCancel,
 }: RoundSectionProps) => {
-  const restPlayerMatch = round.find((match) => match.restPlayer);
+  const byeEntry = round.find(isByeEntry);
 
   return (
     <div key={actualRoundIndex}>
@@ -33,25 +33,21 @@ const RoundSection = ({
       )}
 
       <div className="space-y-3">
-        {round
-          .filter((match) => match.player1 && match.player2)
-          .map((match, matchIndex) => (
-            <MatchCard
-              key={matchIndex}
-              match={match}
-              roundIndex={actualRoundIndex}
-              matchIndex={matchIndex}
-              isSubmitted={isSubmitted}
-              onScoreClick={onScoreClick}
-            />
-          ))}
+        {round.filter(isActiveMatch).map((match: ActiveMatch, matchIndex) => (
+          <MatchCard
+            key={matchIndex}
+            match={match}
+            roundIndex={actualRoundIndex}
+            matchIndex={matchIndex}
+            isSubmitted={isSubmitted}
+            onScoreClick={onScoreClick}
+          />
+        ))}
 
         {/* 휴식 플레이어 */}
-        {restPlayerMatch && (
+        {byeEntry && (
           <div className="border border-gray-200 rounded-lg p-4 bg-blue-50 text-center">
-            <span className="text-gray-700 font-medium">
-              {restPlayerMatch.restPlayer?.name} (휴식)
-            </span>
+            <span className="text-gray-700 font-medium">{byeEntry.restPlayer.name} (휴식)</span>
           </div>
         )}
       </div>

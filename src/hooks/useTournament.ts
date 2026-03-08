@@ -1,23 +1,21 @@
 import { useState, useEffect } from "react";
-import { Player, Match } from "@/types/type";
+import { Player, MatchEntry, ActiveMatch, isActiveMatch } from "@/types/type";
 import { getGameParticipants, submitGameResults, cancelGameResults } from "@/utils/api";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 
-// 순수 함수: 매치 결과를 API 형식으로 변환
-const prepareMatchResults = (matches: Match[]) => {
-  return matches
-    .filter((match) => match.player1 && match.player2)
-    .map((match) => ({
-      player1_id: match.player1!.id,
-      player2_id: match.player2!.id,
-      score1: match.score1,
-      score2: match.score2,
-    }));
+// 순수 함수: ActiveMatch만 필터링하여 API 형식으로 변환
+const prepareMatchResults = (entries: MatchEntry[]) => {
+  return entries.filter(isActiveMatch).map((match: ActiveMatch) => ({
+    player1_id: match.player1.id,
+    player2_id: match.player2.id,
+    score1: match.score1,
+    score2: match.score2,
+  }));
 };
 
 export const useTournament = (gameId: number) => {
   const [players, setPlayers] = useState<Player[]>([]);
-  const [matches, setMatches] = useState<Match[][]>([]);
+  const [matches, setMatches] = useState<MatchEntry[][]>([]);
   const [loading, setLoading] = useState(true);
   const [submittedRounds, setSubmittedRounds] = useState<boolean[]>([]);
 
@@ -60,11 +58,16 @@ export const useTournament = (gameId: number) => {
     player: "score1" | "score2",
     value: number,
   ) => {
-    setMatches((prevMatches) => {
-      const updatedMatches = [...prevMatches];
-      updatedMatches[roundIndex][matchIndex][player] = value;
-      return updatedMatches;
-    });
+    setMatches((prevMatches) =>
+      prevMatches.map((round, ri) =>
+        ri !== roundIndex
+          ? round
+          : round.map((entry, mi) => {
+              if (mi !== matchIndex || entry.kind !== "match") return entry;
+              return { ...entry, [player]: value };
+            }),
+      ),
+    );
   };
 
   const submitRound = async (roundIndex: number) => {

@@ -1,9 +1,9 @@
 import React from "react";
-import { Match } from "@/types/type";
+import { ActiveMatch } from "@/types/type";
 import { PlayerScoreInput } from "@/components";
 
 interface ScoreInputModalProps {
-  match: Match;
+  match: ActiveMatch;
   homeScore: string;
   awayScore: string;
   onHomeScoreChange: (value: string) => void;
@@ -21,7 +21,7 @@ const ScoreInputModal = ({
   onSubmit,
   onClose,
 }: ScoreInputModalProps) => {
-  const isEditing = match.score1 !== undefined && match.score2 !== undefined;
+  const isEditing = match.score1 !== 0 || match.score2 !== 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -33,7 +33,7 @@ const ScoreInputModal = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <PlayerScoreInput
-              player={match.player1 || undefined}
+              player={match.player1}
               score={homeScore}
               onScoreChange={onHomeScoreChange}
             />
@@ -41,13 +41,13 @@ const ScoreInputModal = ({
             <div className="text-2xl font-bold text-gray-400 mx-4">-</div>
 
             <PlayerScoreInput
-              player={match.player2 || undefined}
+              player={match.player2}
               score={awayScore}
               onScoreChange={onAwayScoreChange}
             />
           </div>
 
-          {(match.player1?.handicap !== 0 || match.player2?.handicap !== 0) && (
+          {(match.player1.handicap !== 0 || match.player2.handicap !== 0) && (
             <div className="bg-blue-50 rounded-lg p-3">
               <div className="text-sm text-blue-700">승점 핸디캡이 최종 순위에 반영됩니다</div>
             </div>
