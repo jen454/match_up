@@ -6,6 +6,7 @@ import { Participant, isActiveMatch, isByeEntry, ActiveMatch } from "@/types/typ
 
 const makePlayer = (id: number): Participant => ({
   id,
+  game_id: 1,
   name: `P${id}`,
   handicap: 0,
 });

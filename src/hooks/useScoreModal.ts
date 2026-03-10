@@ -5,9 +5,9 @@ export const useScoreModal = (
   onScoreUpdate: (
     roundIndex: number,
     matchIndex: number,
-    player: "score1" | "score2",
-    value: number,
-  ) => void,
+    score1: number,
+    score2: number,
+  ) => void | Promise<void>,
 ) => {
   const [selectedMatch, setSelectedMatch] = useState<{
     roundIndex: number;
@@ -35,8 +35,7 @@ export const useScoreModal = (
     const homeScoreNum = parseInt(homeScore);
     const awayScoreNum = parseInt(awayScore);
 
-    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, "score1", homeScoreNum);
-    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, "score2", awayScoreNum);
+    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, homeScoreNum, awayScoreNum);
 
     closeModal();
   };

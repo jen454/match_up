@@ -1,7 +1,7 @@
 import { Participant, ActiveMatch, ByeEntry, MatchEntry } from "@/types/type";
 
 /** 홀수 인원 패딩용 유령 선수 — 결과에 노출되지 않음 */
-const BYE_PLAYER: Participant = { id: -1, name: "BYE", handicap: 0 };
+const BYE_PLAYER: Participant = { id: -1, game_id: -1, name: "BYE", handicap: 0 };
 
 /**
  * 라운드 로빈 대진표 생성 (V2)

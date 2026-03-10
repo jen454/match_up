@@ -3,7 +3,13 @@
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
 import { BackHeader } from "@/components/headers";
-import { TournamentTable, ScoreInputModal, LoadingSpinner, RoundSection } from "@/components";
+import {
+  StandingsTable,
+  ScoreInputModal,
+  LoadingSpinner,
+  RoundSection,
+  LapTabs,
+} from "@/components";
 import { ToggleButton, NavigationButton } from "@/components/buttons";
 import { useTournament } from "@/hooks/useTournament";
 import { useScoreModal } from "@/hooks/useScoreModal";
@@ -12,9 +18,21 @@ const TournamentPage = () => {
   const params = useParams();
   const gameId = Number(params.gameId);
 
-  // 커스텀 훅으로 로직 분리
-  const { players, matches, loading, submittedRounds, updateScore, submitRound, cancelRound } =
-    useTournament(gameId);
+  const {
+    standings,
+    rounds,
+    lapList,
+    currentLap,
+    setCurrentLap,
+    loading,
+    submittedRounds,
+    isCurrentLapComplete,
+    isLatestLap,
+    updateScore,
+    submitRound,
+    cancelRound,
+    startNextLap,
+  } = useTournament(gameId);
 
   const {
     selectedMatch,
@@ -27,15 +45,12 @@ const TournamentPage = () => {
     submitScore,
   } = useScoreModal(updateScore);
 
-  // UI 상태
   const [currentRound, setCurrentRound] = useState(0);
   const [showAllRounds, setShowAllRounds] = useState(false);
 
-  // 유틸리티 함수
   const getCompletedRoundsCount = () => submittedRounds.filter(Boolean).length;
-  const getTotalRounds = () => matches.length;
+  const getTotalRounds = () => rounds.length;
 
-  // 로딩 상태
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -57,16 +72,31 @@ const TournamentPage = () => {
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* 순위표 */}
+          {/* 통합 순위표 (왼쪽) */}
           <div className="lg:col-span-1">
-            <TournamentTable players={players} />
+            <StandingsTable standings={standings} currentLap={currentLap} />
           </div>
 
-          {/* 경기 목록 */}
+          {/* 경기 목록 (오른쪽) */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+              {/* Lap 탭 */}
+              <div className="mb-5">
+                <LapTabs
+                  lapList={lapList}
+                  currentLap={currentLap}
+                  isLatestLap={isLatestLap}
+                  isCurrentLapComplete={isCurrentLapComplete}
+                  onLapChange={(lap) => {
+                    setCurrentLap(lap);
+                    setCurrentRound(0);
+                  }}
+                  onNextLap={startNextLap}
+                />
+              </div>
+
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">경기</h2>
+                <h2 className="text-xl font-bold text-gray-900">{currentLap}회차 경기</h2>
                 <ToggleButton
                   isActive={showAllRounds}
                   activeText="라운드별 보기"
@@ -85,33 +115,31 @@ const TournamentPage = () => {
                   <span className="font-medium text-gray-900">라운드 {currentRound + 1}</span>
                   <NavigationButton
                     direction="next"
-                    onClick={() => setCurrentRound(Math.min(matches.length - 1, currentRound + 1))}
-                    disabled={currentRound === matches.length - 1}
+                    onClick={() => setCurrentRound(Math.min(rounds.length - 1, currentRound + 1))}
+                    disabled={currentRound === rounds.length - 1}
                   />
                 </div>
               )}
 
               <div className="space-y-6">
                 {showAllRounds
-                  ? // 모든 라운드 표시
-                    matches.map((round, roundIndex) => (
+                  ? rounds.map((round, roundIndex) => (
                       <RoundSection
                         key={roundIndex}
                         round={round}
                         actualRoundIndex={roundIndex}
                         showRoundTitle={true}
                         isSubmitted={submittedRounds[roundIndex]}
-                        showButtons={roundIndex === currentRound}
+                        showButtons={true}
                         onScoreClick={openModal}
                         onSubmit={submitRound}
                         onCancel={cancelRound}
                       />
                     ))
-                  : // 현재 라운드만 표시
-                    matches[currentRound] && (
+                  : rounds[currentRound] && (
                       <RoundSection
                         key={currentRound}
-                        round={matches[currentRound]}
+                        round={rounds[currentRound]}
                         actualRoundIndex={currentRound}
                         showRoundTitle={false}
                         isSubmitted={submittedRounds[currentRound]}
@@ -127,7 +155,6 @@ const TournamentPage = () => {
         </div>
       </div>
 
-      {/* 점수 입력 모달 */}
       {selectedMatch && (
         <ScoreInputModal
           match={selectedMatch.match}
