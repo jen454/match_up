@@ -11,7 +11,7 @@ import {
 import { groupMatchesByRound } from "@/utils/matchGrouper";
 import { computeStandings } from "@/utils/standings";
 
-export const useTournament = (gameId: number) => {
+export const useTournament = (gameId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [allMatches, setAllMatches] = useState<DbMatch[]>([]); // 전체 Lap 원본
   const [currentLap, setCurrentLap] = useState<number>(1);
@@ -128,10 +128,7 @@ export const useTournament = (gameId: number) => {
       const now = new Date().toISOString();
       setAllMatches((prev) =>
         prev.map((m) =>
-          m.game_id === gameId &&
-          m.lap_number === currentLap &&
-          m.round_number === targetRoundNumber &&
-          !m.is_bye
+          m.lap_number === currentLap && m.round_number === targetRoundNumber && !m.is_bye
             ? { ...m, submitted_at: now }
             : m,
         ),
@@ -152,9 +149,7 @@ export const useTournament = (gameId: number) => {
       // submitted_at → null 로컬 갱신 → standings는 useMemo로 자동 재계산
       setAllMatches((prev) =>
         prev.map((m) =>
-          m.game_id === gameId &&
-          m.lap_number === currentLap &&
-          m.round_number === targetRoundNumber
+          m.lap_number === currentLap && m.round_number === targetRoundNumber
             ? { ...m, submitted_at: null }
             : m,
         ),

@@ -17,7 +17,7 @@ export const createGame = async (players: { name: string; handicap: number }[]) 
 };
 
 // 특정 게임 참가자 불러오기 함수
-export const getGameParticipants = async (gameId: number) => {
+export const getGameParticipants = async (gameId: string) => {
   const response = await fetch(`/api/games/${gameId}/participants`, {
     headers: { "Content-Type": "application/json" },
   });
@@ -31,7 +31,7 @@ export const getGameParticipants = async (gameId: number) => {
 };
 
 // 게임 전체(또는 특정 Lap)의 매치 조회
-export const getGameMatches = async (gameId: number, lap?: number) => {
+export const getGameMatches = async (gameId: string, lap?: number) => {
   const url =
     lap !== undefined ? `/api/games/${gameId}/matches?lap=${lap}` : `/api/games/${gameId}/matches`;
 
@@ -48,7 +48,7 @@ export const getGameMatches = async (gameId: number, lap?: number) => {
 };
 
 // 새 Lap 생성 (대진표 일괄 insert)
-export const createNextLap = async (gameId: number, lapNumber: number) => {
+export const createNextLap = async (gameId: string, lapNumber: number) => {
   const response = await fetch(`/api/games/${gameId}/laps`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -80,7 +80,7 @@ export const updateMatchScore = async (matchId: number, score1: number, score2: 
 };
 
 // 라운드 제출
-export const submitRound = async (gameId: number, lapNumber: number, roundNumber: number) => {
+export const submitRound = async (gameId: string, lapNumber: number, roundNumber: number) => {
   const response = await fetch(
     `/api/games/${gameId}/laps/${lapNumber}/rounds/${roundNumber}/submit`,
     { method: "POST", headers: { "Content-Type": "application/json" } },
@@ -95,7 +95,7 @@ export const submitRound = async (gameId: number, lapNumber: number, roundNumber
 };
 
 // 라운드 제출 취소
-export const cancelRound = async (gameId: number, lapNumber: number, roundNumber: number) => {
+export const cancelRound = async (gameId: string, lapNumber: number, roundNumber: number) => {
   const response = await fetch(
     `/api/games/${gameId}/laps/${lapNumber}/rounds/${roundNumber}/submit`,
     { method: "DELETE", headers: { "Content-Type": "application/json" } },
@@ -110,7 +110,7 @@ export const cancelRound = async (gameId: number, lapNumber: number, roundNumber
 };
 
 // 통합 순위 조회
-export const getStandings = async (gameId: number) => {
+export const getStandings = async (gameId: string) => {
   const response = await fetch(`/api/games/${gameId}/standings`, {
     headers: { "Content-Type": "application/json" },
   });

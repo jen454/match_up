@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 import { Participant, isActiveMatch, isByeEntry } from "@/types/type";
+import { resolveGameId } from "@/utils/resolveGameId";
 
 // POST /api/games/[gameId]/laps
 // 새 Lap의 대진표를 생성하여 matches 테이블에 일괄 insert
 export async function POST(req: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
   try {
     const { gameId } = await params;
-    const parsedGameId = Number(gameId);
 
-    if (isNaN(parsedGameId)) {
-      return NextResponse.json({ error: "잘못된 게임 ID" }, { status: 400 });
+    const internalId = await resolveGameId(gameId);
+    if (internalId === null) {
+      return NextResponse.json({ error: "존재하지 않는 게임" }, { status: 404 });
     }
 
     const { lap_number } = await req.json();
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
     const { count } = await supabase
       .from("matches")
       .select("id", { count: "exact", head: true })
-      .eq("game_id", parsedGameId)
+      .eq("game_id", internalId)
       .eq("lap_number", lap_number);
 
     if (count && count > 0) {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
     const { data: participantsData, error: participantsError } = await supabase
       .from("participants")
       .select("id, game_id, name, handicap")
-      .eq("game_id", parsedGameId);
+      .eq("game_id", internalId);
 
     if (participantsError) throw participantsError;
     if (!participantsData || participantsData.length < 2) {
@@ -54,9 +55,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
         .map((entry) => {
           if (isActiveMatch(entry)) {
             return {
-              game_id: parsedGameId,
+              game_id: internalId,
               lap_number,
-              round_number: roundIdx + 1, // 1-based
+              round_number: roundIdx + 1,
               player1_id: entry.player1.id,
               player2_id: entry.player2.id,
               score1: 0,
@@ -66,14 +67,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ gam
               submitted_at: null,
             };
           }
-          // ByeEntry
           if (isByeEntry(entry)) {
             return {
-              game_id: parsedGameId,
+              game_id: internalId,
               lap_number,
               round_number: roundIdx + 1,
-              player1_id: entry.restPlayer.id, // bye 선수를 player1에 임시 저장
-              player2_id: entry.restPlayer.id, // player2도 동일 (is_bye로 구분)
+              player1_id: entry.restPlayer.id,
+              player2_id: entry.restPlayer.id,
               score1: 0,
               score2: 0,
               is_bye: true,

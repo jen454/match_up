@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { nanoid } from "nanoid";
 import { createClient } from "@/utils/supabase/server";
 import { generateRoundRobinMatches } from "@/utils/matchGenerator";
 import { Participant, isActiveMatch, isByeEntry } from "@/types/type";
@@ -15,8 +16,8 @@ export async function POST(req: Request) {
 
     const { data: game, error: gameError } = await supabase
       .from("games")
-      .insert([{ created_at: new Date() }])
-      .select("id")
+      .insert([{ created_at: new Date(), public_id: nanoid() }])
+      .select("id, public_id")
       .single();
 
     if (gameError) {
@@ -24,7 +25,8 @@ export async function POST(req: Request) {
       throw gameError;
     }
 
-    const gameId = game.id;
+    const gameId = game.id as number;
+    const publicId = game.public_id as string;
 
     // 참가자 정보 저장 (집계 컬럼 없음 — 실시간 집계는 matches 테이블 기반)
     const participants = players.map((player: { name: string; handicap: number }) => ({
@@ -89,7 +91,10 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ message: "게임 및 참가자 생성 완료", gameId }, { status: 201 });
+    return NextResponse.json(
+      { message: "게임 및 참가자 생성 완료", gameId: publicId },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("서버 오류:", error);
     return NextResponse.json({ error: "서버 오류 발생" }, { status: 500 });

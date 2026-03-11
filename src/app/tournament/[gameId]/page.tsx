@@ -16,7 +16,7 @@ import { useScoreModal } from "@/hooks/useScoreModal";
 
 const TournamentPage = () => {
   const params = useParams();
-  const gameId = Number(params.gameId);
+  const gameId = params.gameId as string;
 
   const {
     standings,

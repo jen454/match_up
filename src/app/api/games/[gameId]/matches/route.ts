@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { resolveGameId } from "@/utils/resolveGameId";
 
 // GET /api/games/[gameId]/matches?lap=N
 // lap 파라미터 없으면 전체 Lap 반환
@@ -9,11 +10,11 @@ export async function GET(
 ) {
   try {
     const { gameId } = await params;
-    const parsedGameId = Number(gameId);
     const lapParam = request.nextUrl.searchParams.get("lap");
 
-    if (isNaN(parsedGameId)) {
-      return NextResponse.json({ error: "잘못된 게임 ID" }, { status: 400 });
+    const internalId = await resolveGameId(gameId);
+    if (internalId === null) {
+      return NextResponse.json({ error: "존재하지 않는 게임" }, { status: 404 });
     }
 
     const supabase = await createClient();
@@ -21,7 +22,7 @@ export async function GET(
     let query = supabase
       .from("matches")
       .select("*")
-      .eq("game_id", parsedGameId)
+      .eq("game_id", internalId)
       .order("lap_number", { ascending: true })
       .order("round_number", { ascending: true });
 
