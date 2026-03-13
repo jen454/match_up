@@ -12,7 +12,7 @@ const jaro = Jaro({
 const footerSections = [
   {
     title: "기능",
-    links: ["라운드 로빈 토너먼트", "자동 점수 계산", "모바일 최적화"],
+    links: ["대진표 자동 생성", "순위표 자동 정리", "어디서든 이어서"],
   },
   {
     title: "지원",
