@@ -5,21 +5,22 @@ import { RiTrophyLine, RiBarChartLine, RiSmartphoneLine } from "@remixicon/react
 const features = [
   {
     icon: <RiTrophyLine />,
-    title: "자동 리그 대진표 생성",
+    title: "대진표 자동 생성",
     description:
-      "인원수만 입력하면 라운드 로빈 대진표가 자동 완성됩니다. 홀수 인원도 자동으로 휴식 처리됩니다.",
+      "참가자만 입력하면 대진표가 자동으로 만들어집니다. 모든 참가자가 서로 한 번씩 경기할 수 있도록 일정을 짜줍니다.",
     colorScheme: "green" as const,
   },
   {
     icon: <RiBarChartLine />,
-    title: "실시간 순위 자동 집계",
-    description: "점수를 입력하는 즉시 승점, 득실차, 순위가 실시간으로 반영됩니다.",
+    title: "순위표 자동 정리",
+    description:
+      "점수를 입력하면 순위가 바로 업데이트됩니다. 한 바퀴가 끝난 뒤 다음 바퀴를 이어서 진행할 수 있고, 바퀴별 순위도 따로 확인할 수 있습니다.",
     colorScheme: "emerald" as const,
   },
   {
     icon: <RiSmartphoneLine />,
-    title: "모바일 최적화 UI",
-    description: "게임 중에도 모바일에서 빠르고 간편하게 점수를 입력할 수 있습니다.",
+    title: "진행 상태 자동 복원",
+    description: "페이지를 새로고침하거나 다른 기기로 접속해도 대진표와 점수가 그대로 유지됩니다.",
     colorScheme: "teal" as const,
   },
 ];
