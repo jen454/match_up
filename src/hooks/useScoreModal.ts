@@ -1,26 +1,26 @@
 import { useState } from "react";
-import { Match } from "@/types/type";
+import { ActiveMatch } from "@/types/type";
 
 export const useScoreModal = (
   onScoreUpdate: (
     roundIndex: number,
     matchIndex: number,
-    player: "score1" | "score2",
-    value: number,
-  ) => void,
+    score1: number,
+    score2: number,
+  ) => void | Promise<void>,
 ) => {
   const [selectedMatch, setSelectedMatch] = useState<{
     roundIndex: number;
     matchIndex: number;
-    match: Match;
+    match: ActiveMatch;
   } | null>(null);
   const [homeScore, setHomeScore] = useState("");
   const [awayScore, setAwayScore] = useState("");
 
-  const openModal = (roundIndex: number, matchIndex: number, match: Match) => {
+  const openModal = (roundIndex: number, matchIndex: number, match: ActiveMatch) => {
     setSelectedMatch({ roundIndex, matchIndex, match });
-    setHomeScore(match.score1?.toString() || "");
-    setAwayScore(match.score2?.toString() || "");
+    setHomeScore(match.score1.toString());
+    setAwayScore(match.score2.toString());
   };
 
   const closeModal = () => {
@@ -35,8 +35,7 @@ export const useScoreModal = (
     const homeScoreNum = parseInt(homeScore);
     const awayScoreNum = parseInt(awayScore);
 
-    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, "score1", homeScoreNum);
-    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, "score2", awayScoreNum);
+    onScoreUpdate(selectedMatch.roundIndex, selectedMatch.matchIndex, homeScoreNum, awayScoreNum);
 
     closeModal();
   };

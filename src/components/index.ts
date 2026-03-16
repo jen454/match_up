@@ -19,4 +19,6 @@ export { default as PlayerScore } from "./PlayerScore";
 export { default as PlayerScoreInput } from "./PlayerScoreInput";
 export { default as RoundSection } from "./RoundSection";
 export { default as ScoreInputModal } from "./ScoreInputModal";
-export { default as TournamentTable } from "./TournamentTable";
+export { default as ContactModal } from "./ContactModal";
+export { default as StandingsTable } from "./StandingsTable";
+export { default as LapTabs } from "./LapTabs";

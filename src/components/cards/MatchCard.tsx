@@ -1,14 +1,14 @@
 import React from "react";
-import { Match } from "@/types/type";
+import { ActiveMatch } from "@/types/type";
 import { PlayerScore } from "@/components";
 import { ScoreActionButton } from "@components/buttons";
 
 interface MatchCardProps {
-  match: Match;
+  match: ActiveMatch;
   roundIndex: number;
   matchIndex: number;
   isSubmitted: boolean;
-  onScoreClick: (roundIndex: number, matchIndex: number, match: Match) => void;
+  onScoreClick: (roundIndex: number, matchIndex: number, match: ActiveMatch) => void;
 }
 
 const MatchCard = ({

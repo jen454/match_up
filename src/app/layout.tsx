@@ -1,5 +1,6 @@
 import React from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import "@/styles/globals.css";
 
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const RootLayout = ({ children }: { children: React.ReactNode }) => (
-  <html lang="en">
+  <html lang="en" suppressHydrationWarning>
     <head>
       <style
         dangerouslySetInnerHTML={{
@@ -64,9 +65,10 @@ const RootLayout = ({ children }: { children: React.ReactNode }) => (
         }}
       />
     </head>
-    <SpeedInsights />
     <body>
       {children}
+      <SpeedInsights />
+      <Analytics />
       <div id="initial-loader">
         <div id="initial-loader-spinner"></div>
         <div id="initial-loader-text">MatchUp 로딩중...</div>

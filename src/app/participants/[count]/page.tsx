@@ -18,6 +18,7 @@ const ParticipantsPage = () => {
   const [players, setPlayers] = useState<Participant[]>(
     Array.from({ length: numParticipants }, (_, index) => ({
       id: index + 1,
+      game_id: 0, // DB 저장 전 임시값
       name: "",
       handicap: 0,
     })),
