@@ -1,5 +1,10 @@
 import { DbMatch, Participant, Standing } from "@/types/type";
 
+export type TournamentStandings = {
+  currentLapStandings: Standing[];
+  overallStandings: Standing[];
+};
+
 /**
  * 모든 Lap의 matches 원본 데이터를 합산하여 통합 순위를 계산한다.
  *
@@ -70,3 +75,17 @@ export const computeStandings = (matches: DbMatch[], participants: Participant[]
         b.points - a.points || b.goal_difference - a.goal_difference || b.goals_for - a.goals_for,
     );
 };
+
+export const computeTournamentStandings = (
+  allMatches: DbMatch[],
+  participants: Participant[],
+  currentLap: number,
+): TournamentStandings => {
+  const currentLapMatches = allMatches.filter((m) => m.lap_number === currentLap);
+
+  return {
+    currentLapStandings: computeStandings(currentLapMatches, participants),
+    overallStandings: computeStandings(allMatches, participants),
+  };
+};
+

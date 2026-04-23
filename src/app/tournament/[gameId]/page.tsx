@@ -19,7 +19,9 @@ const TournamentPage = () => {
   const gameId = params.gameId as string;
 
   const {
+    allMatches,
     standings,
+    overallStandings,
     rounds,
     lapList,
     currentLap,
@@ -47,6 +49,7 @@ const TournamentPage = () => {
 
   const [currentRound, setCurrentRound] = useState(0);
   const [showAllRounds, setShowAllRounds] = useState(false);
+  const isOverallTableEmpty = allMatches.length === 0;
 
   const getCompletedRoundsCount = () => submittedRounds.filter(Boolean).length;
   const getTotalRounds = () => rounds.length;
@@ -74,7 +77,14 @@ const TournamentPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* 통합 순위표 (왼쪽) */}
           <div className="lg:col-span-1">
-            <StandingsTable standings={standings} currentLap={currentLap} />
+            <div className="space-y-6">
+              <StandingsTable standings={standings} title={`${currentLap}회차 순위표`} />
+              <StandingsTable
+                standings={overallStandings}
+                title="전체 라운드 통합 순위"
+                emptyMessage={isOverallTableEmpty ? "아직 진행된 경기가 없습니다." : undefined}
+              />
+            </div>
           </div>
 
           {/* 경기 목록 (오른쪽) */}
