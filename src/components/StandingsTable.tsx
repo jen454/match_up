@@ -1,13 +1,17 @@
 import React from "react";
 import { Standing } from "@/types/type";
 
+type StandingsTableProps = {
+  standings: Standing[];
+  title: string;
+  emptyMessage?: string;
+};
+
 const StandingsTable = ({
   standings,
-  currentLap,
-}: {
-  standings: Standing[];
-  currentLap: number;
-}) => {
+  title,
+  emptyMessage,
+}: StandingsTableProps) => {
   const tableHeaders = [
     { key: "rank", label: "순위" },
     { key: "name", label: "이름" },
@@ -52,7 +56,8 @@ const StandingsTable = ({
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
-      <h2 className="text-xl font-bold text-center mb-4">{currentLap}회차 순위표</h2>
+      <h2 className="text-xl font-bold text-center mb-4">{title}</h2>
+      {emptyMessage && <p className="text-sm text-gray-500 text-center mb-4">{emptyMessage}</p>}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse border text-sm">
           <thead>

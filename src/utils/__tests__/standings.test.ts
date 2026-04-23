@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeStandings } from "../standings";
+import { computeStandings, computeTournamentStandings } from "../standings";
 import { DbMatch, Participant } from "@/types/type";
 
 // ─── 픽스처 헬퍼 ─────────────────────────────────────────────────────────────
@@ -204,3 +204,60 @@ describe("computeStandings — 골 집계", () => {
     expect(p1.goal_difference).toBe(1);
   });
 });
+
+describe("computeTournamentStandings — 라운드별/통합 분리 집계", () => {
+  it("TS01: currentLapStandings는 선택 Lap만, overallStandings는 전체 Lap 반영", () => {
+    const participants = [makeParticipant(1), makeParticipant(2)];
+    const matches = [
+      // Lap 1: p1 승
+      makeMatch({ player1_id: 1, player2_id: 2, score1: 2, score2: 1, lap_number: 1 }),
+      // Lap 2: p2 승
+      makeMatch({ player1_id: 1, player2_id: 2, score1: 0, score2: 2, lap_number: 2 }),
+    ];
+
+    const { currentLapStandings, overallStandings } = computeTournamentStandings(
+      matches,
+      participants,
+      2,
+    );
+
+    const currentLapP2 = currentLapStandings.find((s) => s.participant_id === 2)!;
+    const overallP2 = overallStandings.find((s) => s.participant_id === 2)!;
+
+    expect(currentLapP2.wins).toBe(1);
+    expect(currentLapP2.points).toBe(3);
+    expect(overallP2.wins).toBe(1);
+    expect(overallP2.losses).toBe(1);
+    expect(overallP2.points).toBe(3);
+  });
+
+  it("TS02: submitted_at=null 매치는 current/overall 모두 집계에서 제외", () => {
+    const participants = [makeParticipant(1), makeParticipant(2)];
+    const matches = [
+      makeMatch({ player1_id: 1, player2_id: 2, score1: 1, score2: 0, lap_number: 1 }),
+      makeMatch({
+        player1_id: 1,
+        player2_id: 2,
+        score1: 4,
+        score2: 0,
+        lap_number: 2,
+        submitted_at: null,
+      }),
+    ];
+
+    const { currentLapStandings, overallStandings } = computeTournamentStandings(
+      matches,
+      participants,
+      2,
+    );
+
+    const currentLapP1 = currentLapStandings.find((s) => s.participant_id === 1)!;
+    const overallP1 = overallStandings.find((s) => s.participant_id === 1)!;
+
+    expect(currentLapP1.played).toBe(0);
+    expect(currentLapP1.points).toBe(0);
+    expect(overallP1.played).toBe(1);
+    expect(overallP1.points).toBe(3);
+  });
+});
+

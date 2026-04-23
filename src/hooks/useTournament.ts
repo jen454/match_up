@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Participant, DbMatch, Standing, ActiveMatch, isActiveMatch } from "@/types/type";
+import { Participant, DbMatch, ActiveMatch, isActiveMatch } from "@/types/type";
 import {
   getGameParticipants,
   getGameMatches,
@@ -9,7 +9,7 @@ import {
   createNextLap,
 } from "@/utils/api";
 import { groupMatchesByRound } from "@/utils/matchGrouper";
-import { computeStandings } from "@/utils/standings";
+import { computeTournamentStandings } from "@/utils/standings";
 
 export const useTournament = (gameId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -61,10 +61,10 @@ export const useTournament = (gameId: string) => {
     [submittedRounds],
   );
 
-  // 현재 Lap 기준 순위 (클라이언트 집계 — API 호출 없음)
-  const standings = useMemo<Standing[]>(
-    () => computeStandings(currentLapMatches, participants),
-    [currentLapMatches, participants],
+  // 현재 Lap/전체 Lap 순위 (클라이언트 집계 — API 호출 없음)
+  const { currentLapStandings: standings, overallStandings } = useMemo(
+    () => computeTournamentStandings(allMatches, participants, currentLap),
+    [allMatches, participants, currentLap],
   );
 
   // ── 초기 데이터 로드 (새로고침 복원) ─────────────────────────────────────
@@ -182,6 +182,7 @@ export const useTournament = (gameId: string) => {
     participants,
     allMatches,
     standings,
+    overallStandings,
     rounds,
     lapList,
     currentLap,
