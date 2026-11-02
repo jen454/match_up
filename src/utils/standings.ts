@@ -11,7 +11,7 @@ export type TournamentStandings = {
  * - submitted_at이 null인 미제출 매치는 집계에서 제외
  * - is_bye=true인 엔트리는 집계에서 제외
  * - 핸디캡은 초기 points로 반영
- * - 정렬 우선순위: 승점 → 골득실 → 다득점
+ * - 정렬 우선순위: 승점 → 다득점 → 골득실
  *
  * 시간 복잡도: O(M + P log P) — M=총 매치 수, P=참가자 수
  */
@@ -67,12 +67,12 @@ export const computeStandings = (matches: DbMatch[], participants: Participant[]
     }
   }
 
-  // 3. goal_difference 계산 후 정렬 (승점 → 골득실 → 다득점)
+  // 3. goal_difference 계산 후 정렬 (승점 → 다득점 → 골득실)
   return Array.from(map.values())
     .map((s) => ({ ...s, goal_difference: s.goals_for - s.goals_against }))
     .sort(
       (a, b) =>
-        b.points - a.points || b.goal_difference - a.goal_difference || b.goals_for - a.goals_for,
+        b.points - a.points || b.goals_for - a.goals_for || b.goal_difference - a.goal_difference,
     );
 };
 

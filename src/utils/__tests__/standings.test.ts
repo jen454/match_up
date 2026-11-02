@@ -159,32 +159,71 @@ describe("computeStandings — 멀티 Lap 누적", () => {
 });
 
 describe("computeStandings — 정렬 우선순위", () => {
-  it("S10: 승점 동점 시 골득실 우선", () => {
+  it("S10: 승점이 높으면 다득점/골득실과 무관하게 상위", () => {
     const participants = [makeParticipant(1), makeParticipant(2), makeParticipant(3)];
     const matches = [
-      // p1 vs p2: p1 승 (3-0)
       makeMatch({ player1_id: 1, player2_id: 2, score1: 3, score2: 0, round_number: 1 }),
-      // p3 vs p2: p3 승 (1-0)
       makeMatch({ player1_id: 3, player2_id: 2, score1: 1, score2: 0, round_number: 2 }),
-      // p1 vs p3: 무승부
       makeMatch({ player1_id: 1, player2_id: 3, score1: 0, score2: 0, round_number: 3 }),
     ];
 
     const result = computeStandings(matches, participants);
-    // p1: 3+1=4점, gd=3, p3: 1+1=2점+1... 실제로 p1이 1위
-    expect(result[0].participant_id).toBe(1);
+    expect(result.map((s) => s.participant_id)).toEqual([1, 3, 2]);
   });
 
-  it("S11: 골득실도 동점 시 다득점 우선", () => {
-    const participants = [makeParticipant(1), makeParticipant(2)];
+  it("S11: 승점 동점 시 골득실보다 다득점 우선", () => {
+    const participants = [makeParticipant(1), makeParticipant(2), makeParticipant(3), makeParticipant(4)];
     const matches = [
-      // p1 승 3-2, p2 패
-      makeMatch({ player1_id: 1, player2_id: 2, score1: 3, score2: 2 }),
+      // p1: 1-0 승 → 승점 3, 득점 1, 득실 +1
+      makeMatch({ player1_id: 1, player2_id: 3, score1: 1, score2: 0 }),
+      // p2: 5-4 승 → 승점 3, 득점 5, 득실 +1
+      makeMatch({ player1_id: 2, player2_id: 4, score1: 5, score2: 4 }),
     ];
 
     const result = computeStandings(matches, participants);
-    expect(result[0].participant_id).toBe(1);
-    expect(result[0].goals_for).toBe(3);
+    // 승점 동점(3) → 다득점(p2=5 > p1=1)
+    expect(result[0].participant_id).toBe(2);
+    expect(result[1].participant_id).toBe(1);
+  });
+
+  it("S11-2: 골득실이 더 좋아도 다득점이 적으면 하위", () => {
+    const participants = [makeParticipant(1), makeParticipant(2), makeParticipant(3), makeParticipant(4)];
+    const matches = [
+      // p1: 3-0 승 → 득점 3, 득실 +3
+      makeMatch({ player1_id: 1, player2_id: 3, score1: 3, score2: 0 }),
+      // p2: 4-3 승 → 득점 4, 득실 +1
+      makeMatch({ player1_id: 2, player2_id: 4, score1: 4, score2: 3 }),
+    ];
+
+    const result = computeStandings(matches, participants);
+    expect(result[0].participant_id).toBe(2);
+    expect(result[1].participant_id).toBe(1);
+  });
+
+  it("S11-3: 승점·다득점 동점 시 골득실 우선", () => {
+    const participants = [makeParticipant(1), makeParticipant(2), makeParticipant(3), makeParticipant(4)];
+    const matches = [
+      // p1: 2-1 승 → 득점 2, 득실 +1
+      makeMatch({ player1_id: 1, player2_id: 3, score1: 2, score2: 1 }),
+      // p2: 2-0 승 → 득점 2, 득실 +2
+      makeMatch({ player1_id: 2, player2_id: 4, score1: 2, score2: 0 }),
+    ];
+
+    const result = computeStandings(matches, participants);
+    expect(result[0].participant_id).toBe(2);
+    expect(result[1].participant_id).toBe(1);
+  });
+
+  it("S11-4: 통합 순위표(전체 Lap)에도 동일 규칙 적용", () => {
+    const participants = [makeParticipant(1), makeParticipant(2), makeParticipant(3), makeParticipant(4)];
+    const matches = [
+      makeMatch({ player1_id: 1, player2_id: 3, score1: 3, score2: 0, lap_number: 1 }),
+      makeMatch({ player1_id: 2, player2_id: 4, score1: 4, score2: 3, lap_number: 2 }),
+    ];
+
+    const { overallStandings } = computeTournamentStandings(matches, participants, 2);
+    expect(overallStandings[0].participant_id).toBe(2);
+    expect(overallStandings[1].participant_id).toBe(1);
   });
 });
 

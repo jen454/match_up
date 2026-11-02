@@ -189,8 +189,8 @@ export const computeStandings = (
     .map((s) => ({ ...s, goal_difference: s.goals_for - s.goals_against }))
     .sort((a, b) =>
       b.points - a.points ||
-      b.goal_difference - a.goal_difference ||
-      b.goals_for - a.goals_for
+      b.goals_for - a.goals_for ||
+      b.goal_difference - a.goal_difference
     );
 };
 ```
@@ -286,8 +286,8 @@ const isCurrentLapComplete = useMemo(() => submittedRounds.every(Boolean), [...]
 | S07 | is_bye=true 매치 집계 제외 | ✅ |
 | S08 | Lap 1 + Lap 2 누적 합산 | ✅ |
 | S09 | Lap 10회 반복 — 정확성 | ✅ |
-| S10 | 승점 동점 시 골득실 우선 정렬 | ✅ |
-| S11 | 골득실 동점 시 다득점 우선 정렬 | ✅ |
+| S10 | 승점 우선 정렬 | ✅ |
+| S11 | 승점 동점 시 다득점 우선, 이후 골득실 | ✅ |
 | S12 | 득점/실점/골득실 정확히 계산 | ✅ |
 
 ---
