@@ -27,6 +27,7 @@
 | 다회차 진행 | 한 회차가 끝나면 같은 참가자로 다음 회차 대진 생성 |
 | 회차별 / 통합 순위표 | 현재 회차 순위와 전체 회차 누적 순위를 함께 표시 |
 | 진행 상황 복원 | 새로고침하거나 링크로 다시 들어와도 DB에서 그대로 복원 |
+| 오류 안내 | 점수 저장 실패 시 이전 점수로 복원, 실패 원인별 안내 배너, 잘못된 링크 안내 화면 |
 | 문의하기 | 푸터에서 바로 의견 보내기 (EmailJS) |
 
 <br/>
@@ -71,7 +72,7 @@ flowchart LR
     subgraph Browser["브라우저 (Client Components)"]
         Pages["src/app 페이지"] --> Hooks["useTournament<br/>useScoreModal"]
         Hooks --> Standings["utils/standings.ts<br/>순위 계산 (순수 함수)"]
-        Hooks --> Api["utils/api.ts<br/>fetch 래퍼"]
+        Hooks --> Api["utils/api.ts<br/>request() · ApiError"]
         Contact["Footer › ContactModal"]
     end
 
@@ -93,6 +94,7 @@ flowchart LR
 - 브라우저는 Supabase에 직접 접근하지 않고 항상 `/api/*` Route Handler를 거칩니다.
 - 서버는 DB 접근, 대진 생성, 공개 ID 변환만 맡습니다. **순위 계산은 브라우저에서** 처리합니다.
 - 순위 계산과 대진 생성은 React에 의존하지 않는 순수 함수로 `src/utils/`에 분리해 테스트합니다.
+- 모든 API 호출은 `request()` 하나를 거치고, 실패는 HTTP 상태 코드를 담은 `ApiError`로 전달되어 화면에서 원인별로 안내합니다.
 
 <br/>
 
@@ -126,11 +128,19 @@ sequenceDiagram
     API->>DB: resolveGameId → SELECT
     API-->>Hook: { players }, { matches }
     Note over Hook: allMatches 저장 → 라운드 · 순위 자동 파생
+    alt 불러오기 실패
+        API-->>Hook: 404 · 500 (또는 네트워크 오류)
+        Note over UI: 게임 없음 / 다시 시도 안내 화면
+    end
 
     Note over UI,DB: ② 점수 입력 (화면 먼저 반영)
     UI->>Hook: updateScore
     Note over Hook: allMatches 먼저 수정
     Hook->>API: PATCH /api/matches/:id
+    alt 저장 실패
+        API-->>Hook: 4xx · 5xx
+        Note over Hook: 마지막 확정 점수로 롤백 → 안내 배너
+    end
 
     Note over UI,DB: ③ 라운드 제출 · 취소 (응답 후 반영)
     UI->>Hook: submitRound / cancelRound
@@ -173,7 +183,7 @@ sequenceDiagram
 | POST · DELETE | `/api/games/[gameId]/laps/[lap]/rounds/[round]/submit` | 라운드 제출 · 제출 취소 |
 | GET | `/api/games/[gameId]/standings` | 서버 집계 순위 (현재 화면에서는 미사용) |
 
-`[gameId]`는 모두 내부 숫자 ID가 아닌 `public_id`입니다.
+`[gameId]`는 모두 내부 숫자 ID가 아닌 `public_id`입니다. 없는 게임은 404, DB 오류는 500으로 구분해 응답합니다.
 
 <br/>
 
@@ -213,7 +223,22 @@ sequenceDiagram
 - **문제**: 첫 진입 시 빈 화면이 잠깐 보이고, 로딩 화면을 DOM에서 지우는 과정에서 React와 충돌해 `removeChild` 에러가 났습니다.
 - **해결**: CSS 기반 로더를 React 관리 영역 밖(children 뒤)에 두고, DOM을 제거하는 대신 `visibility`로 숨기도록 바꿨습니다.
 
-### 5. 실사용 피드백으로 찾은 버그
+### 5. 에러 처리 체계화 – 조용한 실패 없애기
+
+- **문제**: 서버와 API 래퍼까지는 에러가 전달됐지만 호출부 대부분이 받아 주지 않았습니다. 점수 저장이 실패해도 저장된 것처럼 보이다가 새로고침하면 사라졌고, 라운드 제출 · 다음 회차는 실패해도 버튼이 무반응이었으며, 잘못된 링크는 빈 화면이었습니다. 게다가 DB 장애도 "없는 게임"(404)으로 응답되고 있었습니다.
+- **해결**
+  - **점수 롤백**: 경기별로 "서버에 확정된 마지막 점수"와 "최신 요청 번호"를 추적해, 실패한 요청이 최신일 때만 되돌립니다. 같은 경기를 연달아 고치거나 응답 순서가 뒤바뀌어도 최신 입력을 덮어쓰지 않습니다.
+  - **공통 에러 경로**: fetch를 `request()` 하나로 합치고 실패를 `ApiError(status)`로 던지게 한 뒤, `toUserMessage()`가 네트워크 · 400 · 404 · 409 · 500별 안내 문구를 만듭니다. 500은 서버 내부 메시지를 숨깁니다.
+  - **불러오기 실패 화면**: 404면 "게임을 찾을 수 없습니다", 그 밖에는 데이터만 다시 불러오는 "다시 시도" 화면을 보여줍니다. `resolveGameId`는 `maybeSingle()`로 바꿔 없는 게임과 DB 장애를 구분합니다.
+
+| 항목 | 변경 전 | 변경 후 |
+|---|---|---|
+| 사용자에게 안내되는 API 실패 | 0 / 6개 동작 | 6 / 6개 동작 |
+| 처리되지 않은 Promise rejection 경로 | 5개 | 0개 |
+| `api.ts` 중복 fetch · 에러 처리 | 8회 | `request()` 1개 (124줄 → 103줄) |
+| 추가 의존성 | — | 없음 |
+
+### 6. 실사용 피드백으로 찾은 버그
 
 친구들과 직접 쓰면서 핸디캡 중복 반영, 경기 누락, 승점 동률 시 정렬 오류를 발견해 수정했습니다. 동률 정렬은 "승점이 같으면 다득점" 규칙을 테스트 케이스로 고정했습니다.
 
@@ -231,7 +256,7 @@ sequenceDiagram
     ├── components/      # buttons / cards / headers / footers 및 표 · 모달 · 탭
     ├── hooks/           # useTournament, useScoreModal
     ├── types/           # 공통 타입 (Participant, DbMatch, Standing, MatchEntry)
-    └── utils/           # 대진 생성 · 순위 계산 · API 래퍼 + __tests__
+    └── utils/           # 대진 생성 · 순위 계산 · API 래퍼 · 에러 문구 · 점수 롤백 + __tests__
 ```
 
 <br/>
@@ -259,6 +284,7 @@ Supabase SQL Editor에서 `docs/migrations/`의 SQL을 번호 순서대로 실�
 |---|---|
 | `npm run dev` | 개발 서버 (Turbopack) |
 | `npm run build` | 프로덕션 빌드 |
+| `npm run lint` | ESLint 검사 |
 | `npm test` | Vitest 단위 테스트 |
 | `npm run test:coverage` | 커버리지 측정 |
 | `npm run bench` | 대진 생성 · 순위 계산 벤치마크 |
