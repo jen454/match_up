@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { PlayerCard } from "@/components/cards";
 import { BackHeader } from "@components/headers";
 import { createGame } from "@/utils/api";
+import { toUserMessage } from "@/utils/errorMessage";
+import { ErrorBanner } from "@/components";
 import { Participant } from "@/types/type";
 import { RiTrophyLine } from "@remixicon/react";
 
@@ -13,6 +15,7 @@ const ParticipantsPage = () => {
   const numParticipants = Number(params.count);
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 모든 참가자의 정보를 관리하는 상태
   const [players, setPlayers] = useState<Participant[]>(
@@ -42,6 +45,7 @@ const ParticipantsPage = () => {
 
     try {
       setIsCreating(true);
+      setError(null);
       const data = await createGame(
         players.map((player) => ({
           name: player.name.trim(),
@@ -53,6 +57,7 @@ const ParticipantsPage = () => {
       router.push(`/tournament/${data.gameId}`);
     } catch (error) {
       console.error("게임 생성 실패:", error);
+      setError(toUserMessage("토너먼트 생성", error));
     } finally {
       setIsCreating(false);
     }
@@ -66,6 +71,7 @@ const ParticipantsPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100">
       {/* Header */}
       <BackHeader title="참가자 정보" backButtonLabel="뒤로" />
+      {error && <ErrorBanner message={error} onClose={() => setError(null)} />}
 
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-8">

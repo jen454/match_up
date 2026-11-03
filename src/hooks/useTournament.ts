@@ -11,6 +11,7 @@ import {
 import { groupMatchesByRound } from "@/utils/matchGrouper";
 import { computeTournamentStandings } from "@/utils/standings";
 import { createScoreSync } from "@/utils/scoreSync";
+import { toUserMessage } from "@/utils/errorMessage";
 
 export const useTournament = (gameId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -133,7 +134,7 @@ export const useTournament = (gameId: string) => {
 
         setAllMatches((prev) => prev.map((m) => (m.id === matchId ? { ...m, ...rollback } : m)));
         setError(
-          `${targetMatch.round_number}라운드 경기 점수를 저장하지 못해 이전 점수로 되돌렸습니다. 다시 입력해 주세요.`,
+          `${toUserMessage(`${targetMatch.round_number}라운드 점수 저장`, e)} 점수는 이전 값으로 되돌렸습니다.`,
         );
       }
     },
@@ -147,7 +148,14 @@ export const useTournament = (gameId: string) => {
         (a, b) => a - b,
       );
       const targetRoundNumber = roundNumbers[roundIndex];
-      await apiSubmitRound(gameId, currentLap, targetRoundNumber);
+      setError(null);
+      try {
+        await apiSubmitRound(gameId, currentLap, targetRoundNumber);
+      } catch (e) {
+        console.error("라운드 제출 실패:", e);
+        setError(toUserMessage(`${targetRoundNumber}라운드 제출`, e));
+        return;
+      }
 
       // submitted_at 로컬 갱신 → standings는 useMemo로 자동 재계산
       const now = new Date().toISOString();
@@ -169,7 +177,14 @@ export const useTournament = (gameId: string) => {
         (a, b) => a - b,
       );
       const targetRoundNumber = roundNumbers[roundIndex];
-      await apiCancelRound(gameId, currentLap, targetRoundNumber);
+      setError(null);
+      try {
+        await apiCancelRound(gameId, currentLap, targetRoundNumber);
+      } catch (e) {
+        console.error("라운드 취소 실패:", e);
+        setError(toUserMessage(`${targetRoundNumber}라운드 제출 취소`, e));
+        return;
+      }
 
       // submitted_at → null 로컬 갱신 → standings는 useMemo로 자동 재계산
       setAllMatches((prev) =>
@@ -186,8 +201,16 @@ export const useTournament = (gameId: string) => {
   // ── 다음 Lap 시작 ─────────────────────────────────────────────────────────
   const startNextLap = useCallback(async () => {
     const nextLap = lapList.length > 0 ? Math.max(...lapList) + 1 : 1;
-    const res = await createNextLap(gameId, nextLap);
-    const newMatches: DbMatch[] = res.matches ?? [];
+    setError(null);
+    let newMatches: DbMatch[];
+    try {
+      const res = await createNextLap(gameId, nextLap);
+      newMatches = res.matches ?? [];
+    } catch (e) {
+      console.error("다음 회차 생성 실패:", e);
+      setError(toUserMessage(`${nextLap}회차 시작`, e));
+      return;
+    }
     setAllMatches((prev) => [...prev, ...newMatches]);
     setCurrentLap(nextLap);
   }, [gameId, lapList]);
