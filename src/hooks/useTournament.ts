@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Participant, DbMatch, ActiveMatch, isActiveMatch } from "@/types/type";
 import {
   getGameParticipants,
@@ -10,12 +10,19 @@ import {
 } from "@/utils/api";
 import { groupMatchesByRound } from "@/utils/matchGrouper";
 import { computeTournamentStandings } from "@/utils/standings";
+import { createScoreSync } from "@/utils/scoreSync";
 
 export const useTournament = (gameId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [allMatches, setAllMatches] = useState<DbMatch[]>([]); // 전체 Lap 원본
   const [currentLap, setCurrentLap] = useState<number>(1);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const clearError = useCallback(() => setError(null), []);
+
+  // 점수 저장 실패 시 롤백 판단 (매치별 확정 점수 · 최신 요청 추적)
+  const scoreSyncRef = useRef(createScoreSync());
 
   // 참가자 Map (id → Participant) — groupMatchesByRound에 전달
   const participantMap = useMemo(() => new Map(participants.map((p) => [p.id, p])), [participants]);
@@ -91,7 +98,7 @@ export const useTournament = (gameId: string) => {
     fetchAll();
   }, [fetchAll]);
 
-  // ── 점수 업데이트 (로컬 state 즉시 반영 + DB 저장) ───────────────────────
+  // ── 점수 업데이트 (로컬 state 즉시 반영 + DB 저장, 실패 시 롤백) ──────────
   const updateScore = useCallback(
     async (roundIndex: number, matchIndex: number, score1: number, score2: number) => {
       const roundNumbers = [...new Set(currentLapMatches.map((m) => m.round_number))].sort(
@@ -104,13 +111,31 @@ export const useTournament = (gameId: string) => {
       const targetMatch = activeInRound[matchIndex];
       if (!targetMatch) return;
 
-      // 로컬 state 즉시 반영 (score1, score2 동시에)
-      setAllMatches((prev) =>
-        prev.map((m) => (m.id === targetMatch.id ? { ...m, score1, score2 } : m)),
-      );
+      const matchId = targetMatch.id;
+      const sync = scoreSyncRef.current;
+      const requestSeq = sync.begin(matchId, {
+        score1: targetMatch.score1,
+        score2: targetMatch.score2,
+      });
 
-      // DB 저장
-      await updateMatchScore(targetMatch.id, score1, score2);
+      // 로컬 state 즉시 반영 (score1, score2 동시에)
+      setError(null);
+      setAllMatches((prev) => prev.map((m) => (m.id === matchId ? { ...m, score1, score2 } : m)));
+
+      try {
+        await updateMatchScore(matchId, score1, score2);
+        sync.succeed(matchId, requestSeq, { score1, score2 });
+      } catch (e) {
+        console.error("점수 저장 실패:", e);
+        const rollback = sync.fail(matchId, requestSeq);
+        // 더 최근 요청이 진행 중이면 그 결과를 따르므로 되돌리지 않는다
+        if (!rollback) return;
+
+        setAllMatches((prev) => prev.map((m) => (m.id === matchId ? { ...m, ...rollback } : m)));
+        setError(
+          `${targetMatch.round_number}라운드 경기 점수를 저장하지 못해 이전 점수로 되돌렸습니다. 다시 입력해 주세요.`,
+        );
+      }
     },
     [currentLapMatches],
   );
@@ -188,6 +213,8 @@ export const useTournament = (gameId: string) => {
     currentLap,
     setCurrentLap,
     loading,
+    error,
+    clearError,
     submittedRounds,
     isCurrentLapComplete,
     isLatestLap,

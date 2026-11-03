@@ -9,6 +9,7 @@ import {
   LoadingSpinner,
   RoundSection,
   LapTabs,
+  ErrorBanner,
 } from "@/components";
 import { ToggleButton, NavigationButton } from "@/components/buttons";
 import { useTournament } from "@/hooks/useTournament";
@@ -27,6 +28,8 @@ const TournamentPage = () => {
     currentLap,
     setCurrentLap,
     loading,
+    error,
+    clearError,
     submittedRounds,
     isCurrentLapComplete,
     isLatestLap,
@@ -74,6 +77,7 @@ const TournamentPage = () => {
       />
 
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full">
+        {error && <ErrorBanner message={error} onClose={clearError} />}
         <div className="grid lg:grid-cols-3 gap-8">
           {/* 통합 순위표 (왼쪽) */}
           <div className="lg:col-span-1">
