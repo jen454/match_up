@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { ApiError } from "../api";
-import { toUserMessage } from "../errorMessage";
+import { toUserMessage, toLoadErrorView } from "../errorMessage";
 
 describe("toUserMessage — 사용자용 에러 문구", () => {
   it("E01: 네트워크 오류(status 0)는 연결 확인 안내", () => {
@@ -40,5 +40,29 @@ describe("toUserMessage — 사용자용 에러 문구", () => {
     expect(toUserMessage("점수 저장", "string")).toBe(
       "점수 저장에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     );
+  });
+});
+
+describe("toLoadErrorView — 초기 로드 실패 화면", () => {
+  it("L01: 404는 not-found (다시 시도 없음)", () => {
+    const view = toLoadErrorView(new ApiError(404, "존재하지 않는 게임"));
+    expect(view.kind).toBe("not-found");
+    expect(view.title).toBe("게임을 찾을 수 없습니다");
+  });
+
+  it("L02: 네트워크 오류는 retryable + 연결 확인 안내", () => {
+    const view = toLoadErrorView(new ApiError(0, "네트워크 오류"));
+    expect(view.kind).toBe("retryable");
+    expect(view.description).toContain("인터넷 연결");
+  });
+
+  it("L03: 500은 retryable + 잠시 후 다시 시도", () => {
+    const view = toLoadErrorView(new ApiError(500, "서버 오류"));
+    expect(view.kind).toBe("retryable");
+    expect(view.description).toContain("잠시 후 다시 시도");
+  });
+
+  it("L04: ApiError가 아닌 값도 retryable", () => {
+    expect(toLoadErrorView(new Error("boom")).kind).toBe("retryable");
   });
 });

@@ -23,3 +23,4 @@ export { default as ContactModal } from "./ContactModal";
 export { default as StandingsTable } from "./StandingsTable";
 export { default as LapTabs } from "./LapTabs";
 export { default as ErrorBanner } from "./ErrorBanner";
+export { default as LoadErrorScreen } from "./LoadErrorScreen";

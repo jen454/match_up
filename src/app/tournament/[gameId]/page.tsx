@@ -10,6 +10,7 @@ import {
   RoundSection,
   LapTabs,
   ErrorBanner,
+  LoadErrorScreen,
 } from "@/components";
 import { ToggleButton, NavigationButton } from "@/components/buttons";
 import { useTournament } from "@/hooks/useTournament";
@@ -28,6 +29,8 @@ const TournamentPage = () => {
     currentLap,
     setCurrentLap,
     loading,
+    loadError,
+    retryLoad,
     error,
     clearError,
     submittedRounds,
@@ -63,6 +66,10 @@ const TournamentPage = () => {
         <LoadingSpinner size="lg" text="토너먼트 데이터 불러오는 중" />
       </div>
     );
+  }
+
+  if (loadError) {
+    return <LoadErrorScreen view={loadError} onRetry={retryLoad} />;
   }
 
   return (
