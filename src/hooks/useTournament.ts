@@ -11,7 +11,7 @@ import {
 import { groupMatchesByRound } from "@/utils/matchGrouper";
 import { computeTournamentStandings } from "@/utils/standings";
 import { createScoreSync } from "@/utils/scoreSync";
-import { toUserMessage } from "@/utils/errorMessage";
+import { toUserMessage, toLoadErrorView, LoadErrorView } from "@/utils/errorMessage";
 
 export const useTournament = (gameId: string) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -19,6 +19,7 @@ export const useTournament = (gameId: string) => {
   const [currentLap, setCurrentLap] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<LoadErrorView | null>(null);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -79,6 +80,7 @@ export const useTournament = (gameId: string) => {
   const fetchAll = useCallback(async () => {
     if (!gameId) return;
     setLoading(true);
+    setLoadError(null);
     try {
       const [participantsRes, matchesRes] = await Promise.all([
         getGameParticipants(gameId),
@@ -90,6 +92,9 @@ export const useTournament = (gameId: string) => {
       // 가장 최신 Lap으로 초기화
       const laps: number[] = (matchesRes.matches ?? []).map((m: DbMatch) => m.lap_number);
       if (laps.length > 0) setCurrentLap(Math.max(...laps));
+    } catch (e) {
+      console.error("토너먼트 불러오기 실패:", e);
+      setLoadError(toLoadErrorView(e));
     } finally {
       setLoading(false);
     }
@@ -236,6 +241,8 @@ export const useTournament = (gameId: string) => {
     currentLap,
     setCurrentLap,
     loading,
+    loadError,
+    retryLoad: fetchAll,
     error,
     clearError,
     submittedRounds,
